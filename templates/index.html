@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>감정 분석 프로그램</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f6f9;
+            margin: 0;
+        }
+
+        .container {
+            box-sizing: border-box;
+            width: 90%;
+            max-width: 600px;
+            margin: 80px auto;
+            padding: 30px;
+            background-color: white;
+            border-radius: 15px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        p {
+            color: #666;
+        }
+
+        .review-field {
+            position: relative;
+            margin-top: 20px;
+        }
+
+        textarea {
+            display: block;
+            box-sizing: border-box;
+            width: 100%;
+            height: 150px;
+            padding: 12px 48px 12px 12px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            resize: none;
+            font-size: 16px;
+        }
+
+        .clear-button {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            width: 32px;
+            height: 32px;
+            padding: 0;
+            border: none;
+            border-radius: 50%;
+            background-color: #f0f4f8;
+            color: #333;
+            font-size: 22px;
+            line-height: 1;
+            cursor: pointer;
+        }
+
+        .clear-button:hover {
+            background-color: #e1e8f0;
+        }
+
+        .analyze-button {
+            width: 100%;
+            padding: 14px;
+            margin-top: 15px;
+            background-color: #4a90e2;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        .analyze-button:hover {
+            background-color: #357abd;
+        }
+
+        .result {
+            margin-top: 25px;
+            padding: 20px;
+            border-radius: 10px;
+            background-color: #f0f4f8;
+        }
+
+        .positive,
+        .negative,
+        .unknown {
+            font-weight: bold;
+            font-size: 24px;
+        }
+
+        .positive {
+            color: #219653;
+        }
+
+        .negative {
+            color: #eb5757;
+        }
+
+        .unknown {
+            color: #777;
+        }
+
+        .emotion-ratio {
+            margin: 16px 0 0;
+            line-height: 1.6;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>😊 감정 분석 프로그램</h1>
+        <p>영어 리뷰를 입력하면 긍정 또는 부정으로 분류합니다.</p>
+
+        <form method="POST">
+            <div class="review-field">
+                <textarea
+                    id="review"
+                    name="review"
+                    placeholder="Enter your review here..."
+                    aria-label="영어 리뷰"
+                    required>{{ text }}</textarea>
+
+                <button
+                    id="clear-review"
+                    class="clear-button"
+                    type="button"
+                    aria-label="입력 지우기"
+                    title="입력 지우기">×</button>
+            </div>
+
+            <button class="analyze-button" type="submit">감정 분석하기</button>
+        </form>
+
+        {% if result %}
+            <div class="result" id="analysis-result">
+                <h2>분석 결과</h2>
+
+                {% if result == "POSITIVE" %}
+                    <div class="positive">😊 POSITIVE</div>
+                    <p>긍정적인 리뷰입니다!</p>
+                {% elif result == "NEGATIVE" %}
+                    <div class="negative">😞 NEGATIVE</div>
+                    <p>부정적인 리뷰입니다.</p>
+                {% else %}
+                    <div class="unknown">🤔 UNKNOWN</div>
+                    <p>감정을 판단하기 어렵습니다.</p>
+                {% endif %}
+
+                {% if positive_percent is not none %}
+                    <p class="emotion-ratio">
+                        <strong>감정 단어 비율</strong><br>
+                        긍정 {{ "%g"|format(positive_percent) }}% ({{ positive_count }}개) ·
+                        부정 {{ "%g"|format(negative_percent) }}% ({{ negative_count }}개)
+                    </p>
+                {% else %}
+                    <p class="emotion-ratio">일치하는 감정 단어가 없어 비율을 계산할 수 없어요.</p>
+                {% endif %}
+            </div>
+        {% endif %}
+    </div>
+
+    <script>
+        const review = document.getElementById("review");
+        const clearButton = document.getElementById("clear-review");
+
+        review.addEventListener("keydown", (event) => {
+            if (event.key !== "Enter" || event.isComposing) {
+                return;
+            }
+
+            event.preventDefault();
+
+            if (event.shiftKey || event.ctrlKey) {
+                review.setRangeText(
+                    "\n", review.selectionStart, review.selectionEnd, "end"
+                );
+                return;
+            }
+
+            review.form.requestSubmit();
+        });
+
+        clearButton.addEventListener("click", () => {
+            review.value = "";
+            document.getElementById("analysis-result")?.remove();
+            review.focus();
+        });
+    </script>
+</body>
+</html>
